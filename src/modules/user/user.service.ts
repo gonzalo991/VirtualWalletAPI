@@ -24,8 +24,8 @@ export const createUser = async (dto: CreateUserDto): Promise<UserResponse> => {
         const user = UserMapper.toDomain(prismaUser);
         return UserMapper.toResponse(user);
     } catch (error) {
-        const statusCode = (error as any).statusCode || 500;
-        throw ServiceException("Error creating user at service: ", statusCode);
+        if ((error as any).statusCode) throw error;
+        throw ServiceException("Unexpected error creating user", 500);
     }
 }
 
@@ -40,8 +40,8 @@ export const updateUser = async (id: string, dto: UpdateUserDto): Promise<UserRe
         const user = UserMapper.toDomain(prismaUser);
         return UserMapper.toResponse(user);
     } catch (error) {
-        const statusCode = (error as any).statusCode || 500;
-        throw ServiceException("Error updating user at service: ", statusCode);
+        if ((error as any).statusCode) throw error;
+        throw ServiceException("Unexpected error creating user", 500);
     }
 }
 
@@ -57,7 +57,7 @@ export const getUserByEmail = async (email: string): Promise<UserResponse> => {
         const user = UserMapper.toDomain(prismaUser);
         return UserMapper.toResponse(user);
     } catch (error) {
-        const statusCode = (error as any).statusCode || 500;
-        throw ServiceException("Error fetching user by email", statusCode);
+        if ((error as any).statusCode) throw error;
+        throw ServiceException("Unexpected error fetching user by email", 500);
     }
 }
