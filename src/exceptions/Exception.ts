@@ -39,3 +39,9 @@ export const InvalidFieldsException = (message: string, statusCode: number = 422
     (error as any).statusCode = statusCode;
     return error;
 }
+
+export const AlreadyExistsException = (message: string, statusCode: number = 409) => {
+    const error = new Error(message);
+    (error as any).statusCode = statusCode;
+    return error;
+}   
