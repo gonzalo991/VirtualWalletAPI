@@ -16,7 +16,7 @@ export const validateDtoFields = (dto: CreateUserDto | UpdateUserDto): void => {
 export const validateEmail = (email: string): void => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        throw InvalidFieldsException("Invalid email format", 400);
+        throw InvalidFieldsException("Invalid email format");
     }
     console.debug("Email validation passed");
 }
