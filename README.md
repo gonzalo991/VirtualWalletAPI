@@ -2,117 +2,55 @@
 
 ---
 
-## 🇪🇸 Español
+## 🇺🇸 English
 
-API de billetera virtual desarrollada con Node.js, TypeScript y Prisma, enfocada en buenas prácticas de backend como arquitectura limpia, manejo de errores y diseño de APIs REST.
-
-### 🚀 Objetivo
-
-Este proyecto tiene como objetivo simular el funcionamiento de una billetera digital, permitiendo a los usuarios registrarse, autenticarse y realizar transferencias entre cuentas.
-
-Además, está diseñado para evolucionar hacia una integración con tecnologías blockchain, incorporando smart contracts y manejo de wallets reales.
-
-### 🧱 Tecnologías utilizadas
-
-* Node.js
-* TypeScript
-* Express
-* PostgreSQL
-* Prisma ORM
-* JWT (autenticación)
-* Docker
-
-### 🔑 Funcionalidades actuales
-
-* Registro de usuarios
-* Autenticación con JWT
-* Obtención de usuario autenticado
-* Base preparada para sistema de balance
-
-### 🔜 Próximas funcionalidades
-
-* Transferencias entre usuarios
-* Historial de transacciones
-* Manejo de concurrencia en operaciones
-* Refactor a Clean Architecture
-* Integración con smart contracts (blockchain)
-
-### 📌 Enfoque técnico
-
-El proyecto prioriza:
-
-* Código limpio y mantenible
-* Separación de responsabilidades
-* Diseño de APIs REST consistente
-* Escalabilidad y buenas prácticas
-
-### ⚙️ Instalación
-
-```bash
-git clone <repo>
-cd wallet-api
-npm install
-```
-
-Configurar variables de entorno:
-
-```env
-DATABASE_URL=...
-JWT_SECRET=...
-```
-
-Ejecutar migraciones:
-
-```bash
-npx prisma migrate dev
-```
-
-Levantar el servidor:
-
-```bash
-npm run dev
-```
-
-### 🧠 Autor
-
-Desarrollado por Gonzalo Araya, enfocado en backend development y especialización futura en blockchain.
+Virtual wallet API built with Node.js, TypeScript and Prisma, focused on backend best practices such as clean architecture, testing, and scalable REST API design.
 
 ---
 
-## 🇺🇸 English
-
-Virtual wallet API built with Node.js, TypeScript and Prisma, focused on backend best practices such as clean architecture, error handling and REST API design.
-
 ### 🚀 Objective
 
-This project aims to simulate a digital wallet system, allowing users to register, authenticate and perform transfers between accounts.
+This project simulates a digital wallet system where users can register, authenticate, and operate with a balance system.
 
-It is also designed to evolve into a blockchain-integrated system, including smart contracts and real wallet interactions.
+It is designed as a solid backend foundation to evolve into more complex systems, including concurrency handling and future blockchain integration.
+
+---
 
 ### 🧱 Tech Stack
 
-* Node.js
+* Node.js (v25)
 * TypeScript
 * Express
 * PostgreSQL
 * Prisma ORM
 * JWT (authentication)
 * Docker
+* Jest + Supertest (testing)
+
+---
 
 ### 🔑 Current Features
 
 * User registration
 * JWT authentication
-* Get authenticated user
-* Base structure for balance system
+* DTO validation
+* Centralized error handling
+* Endpoint testing (HTTP level)
+* Modular architecture (controller / service)
+
+---
 
 ### 🔜 Upcoming Features
 
 * User-to-user transfers
+* Balance system
 * Transaction history
-* Concurrency handling
-* Refactor to Clean Architecture
+* Concurrency handling (race conditions)
+* Role-based authorization
+* Full Clean Architecture refactor
 * Smart contract integration (blockchain)
+
+---
 
 ### 📌 Technical Focus
 
@@ -120,8 +58,11 @@ This project emphasizes:
 
 * Clean and maintainable code
 * Separation of concerns
-* Consistent REST API design
-* Scalability and best practices
+* Consistent validation and error handling
+* Real endpoint testing (no mocks)
+* Backend scalability
+
+---
 
 ### ⚙️ Installation
 
@@ -134,8 +75,8 @@ npm install
 Set environment variables:
 
 ```env
-DATABASE_URL=...
-JWT_SECRET=...
+DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/wallet
+JWT_SECRET=your_secret_key
 ```
 
 Run migrations:
@@ -144,12 +85,153 @@ Run migrations:
 npx prisma migrate dev
 ```
 
-Start the server:
+Generate Prisma client (if needed):
+
+```bash
+npx prisma generate
+```
+
+Start server:
 
 ```bash
 npm run dev
 ```
 
+---
+
+### 🧪 Testing
+
+```bash
+npm run test
+```
+
+Tests include:
+
+* Jest
+* Supertest
+* Real database testing (clean state per test)
+
+---
+
 ### 🧠 Author
 
-Developed by Gonzalo Araya, focused on backend development and future specialization in blockchain.
+Gonzalo Araya
+Backend Developer (Node.js) focused on scalable systems and clean architecture.
+
+---
+
+## 🇪🇸 Español
+
+API de billetera virtual desarrollada con Node.js, TypeScript y Prisma, enfocada en buenas prácticas de backend como arquitectura limpia, testing y diseño de APIs REST escalables.
+
+---
+
+### 🚀 Objetivo
+
+Este proyecto simula una billetera digital donde los usuarios pueden registrarse, autenticarse y operar con un sistema de balance.
+
+Está diseñado como una base sólida para evolucionar hacia sistemas más complejos, incluyendo manejo de concurrencia y futura integración con tecnologías blockchain.
+
+---
+
+### 🧱 Tecnologías
+
+* Node.js (v25)
+* TypeScript
+* Express
+* PostgreSQL
+* Prisma ORM
+* JWT (autenticación)
+* Docker
+* Jest + Supertest (testing)
+
+---
+
+### 🔑 Funcionalidades actuales
+
+* Registro de usuarios
+* Autenticación con JWT
+* Validación de datos (DTO + validators)
+* Manejo de errores centralizado
+* Testing de endpoints (HTTP)
+* Arquitectura modular (controller / service)
+
+---
+
+### 🔜 Próximas funcionalidades
+
+* Transferencias entre usuarios
+* Sistema de balance
+* Historial de transacciones
+* Manejo de concurrencia (race conditions)
+* Middleware de autorización por roles
+* Refactor completo a Clean Architecture
+* Integración con smart contracts (blockchain)
+
+---
+
+### 📌 Enfoque técnico
+
+El proyecto prioriza:
+
+* Código limpio y mantenible
+* Separación de responsabilidades
+* Validación y manejo de errores consistente
+* Testing de endpoints reales (no mocks)
+* Escalabilidad en backend
+
+---
+
+### ⚙️ Instalación
+
+```bash
+git clone <repo>
+cd wallet-api
+npm install
+```
+
+Configurar variables de entorno:
+
+```env
+DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/wallet
+JWT_SECRET=your_secret_key
+```
+
+Ejecutar migraciones:
+
+```bash
+npx prisma migrate dev
+```
+
+Generar cliente Prisma (si es necesario):
+
+```bash
+npx prisma generate
+```
+
+Levantar el servidor:
+
+```bash
+npm run dev
+```
+
+---
+
+### 🧪 Testing
+
+```bash
+npm run test
+```
+
+Los tests utilizan:
+
+* Jest
+* Supertest
+* Base de datos real (limpieza por test)
+
+---
+
+### 🧠 Autor
+
+Gonzalo Araya
+Backend Developer (Node.js) enfocado en sistemas escalables y arquitectura limpia.

@@ -3,7 +3,7 @@ import type { CreateUserDto } from "../modules/user/dto/CreateUser.dto.js";
 import type { UpdateUserDto } from "../modules/user/dto/UpdateUser.dto.js";
 
 export const validateDtoFields = (dto: CreateUserDto | UpdateUserDto): void => {
-    const requiredFields = ["name", "email", "password"];
+    const requiredFields = ["username", "email", "password"];
     const missingFields = requiredFields.filter(field => !(field in dto) || (dto as any)[field].trim() === "");
 
     if (missingFields.length > 0) {

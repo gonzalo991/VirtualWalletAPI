@@ -6,13 +6,16 @@
         "outDir": "./dist",
         // Environment Settings
         // See also https://aka.ms/tsconfig/module
-        "module": "nodenext",
-        "target": "esnext",
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "ignoreDeprecations": "6.0",
         // For nodejs:
         "lib": [
             "esnext"
         ],
         "types": [
+            "jest",
             "node"
         ],
         // and npm install -D @types/node
@@ -42,8 +45,9 @@
         "forceConsistentCasingInFileNames": true,
     },
     "include": [
-        "src/**/*"
-, "src/lib"    ],
+        "src/**/*",
+        "src/lib"
+    ],
     "exclude": [
         "node_modules",
         "dist"
