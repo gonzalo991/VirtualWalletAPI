@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:15
+    container_name: wallet-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wallet
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: wallet-api-prod
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/wallet
+      JWT_SECRET: your_jwt_secret_key
+      JWT_EXPIRES_IN: 3600
+    command: npm start

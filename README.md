@@ -18,7 +18,7 @@ It is designed as a solid backend foundation to evolve into more complex systems
 
 ### 🧱 Tech Stack
 
-* Node.js (v25)
+* Node.js (v22 LTS – Dockerized)
 * TypeScript
 * Express
 * PostgreSQL
@@ -32,7 +32,7 @@ It is designed as a solid backend foundation to evolve into more complex systems
 ### 🔑 Current Features
 
 * User registration
-* JWT authentication
+* JWT authentication (in progress)
 * DTO validation
 * Centralized error handling
 * Endpoint testing (HTTP level)
@@ -64,48 +64,81 @@ This project emphasizes:
 
 ---
 
-### ⚙️ Installation
+## ⚙️ Quick Start (Recommended - Docker)
+
+### 1. Clone repository
 
 ```bash
 git clone <repo>
-cd wallet-api
-npm install
-```
-
-Set environment variables:
-
-```env
-DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/wallet
-JWT_SECRET=your_secret_key
-```
-
-Run migrations:
-
-```bash
-npx prisma migrate dev
-```
-
-Generate Prisma client (if needed):
-
-```bash
-npx prisma generate
-```
-
-Start server:
-
-```bash
-npm run dev
+cd VirtualWalletAPI
 ```
 
 ---
 
-### 🧪 Testing
+### 2. Run development environment
+
+```bash
+npm run start:dev
+```
+
+👉 This command will:
+
+* Build containers
+* Start PostgreSQL
+* Start API
+* Run Prisma migrations
+* Auto-create `.env` if missing
+
+---
+
+### 3. API ready at:
+
+```
+http://localhost:8080
+```
+
+---
+
+### 🛑 Stop containers
+
+```bash
+npm run docker:down:dev
+```
+
+---
+
+## 🏭 Production Mode
+
+```bash
+npm run start:prod
+```
+
+👉 Runs optimized production build + `prisma migrate deploy`
+
+---
+
+## ⚙️ Environment Variables
+
+For development, `.env` is created automatically if missing.
+
+Manual example:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/wallet
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=3600
+PORT=8080
+```
+
+---
+
+## 🧪 Testing
 
 ```bash
 npm run test
 ```
 
-Tests include:
+Includes:
 
 * Jest
 * Supertest
@@ -113,14 +146,14 @@ Tests include:
 
 ---
 
-### 🧠 Author
+## 🧠 Author
 
 Gonzalo Araya
 Backend Developer (Node.js) focused on scalable systems and clean architecture.
 
 ---
 
-## 🇪🇸 Español
+# 🇪🇸 Español
 
 API de billetera virtual desarrollada con Node.js, TypeScript y Prisma, enfocada en buenas prácticas de backend como arquitectura limpia, testing y diseño de APIs REST escalables.
 
@@ -136,7 +169,7 @@ Está diseñado como una base sólida para evolucionar hacia sistemas más compl
 
 ### 🧱 Tecnologías
 
-* Node.js (v25)
+* Node.js (v22 LTS – Dockerizado)
 * TypeScript
 * Express
 * PostgreSQL
@@ -150,7 +183,7 @@ Está diseñado como una base sólida para evolucionar hacia sistemas más compl
 ### 🔑 Funcionalidades actuales
 
 * Registro de usuarios
-* Autenticación con JWT
+* Autenticación con JWT (en progreso)
 * Validación de datos (DTO + validators)
 * Manejo de errores centralizado
 * Testing de endpoints (HTTP)
@@ -182,48 +215,81 @@ El proyecto prioriza:
 
 ---
 
-### ⚙️ Instalación
+## ⚙️ Inicio rápido (Recomendado - Docker)
+
+### 1. Clonar repositorio
 
 ```bash
 git clone <repo>
-cd wallet-api
-npm install
-```
-
-Configurar variables de entorno:
-
-```env
-DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/wallet
-JWT_SECRET=your_secret_key
-```
-
-Ejecutar migraciones:
-
-```bash
-npx prisma migrate dev
-```
-
-Generar cliente Prisma (si es necesario):
-
-```bash
-npx prisma generate
-```
-
-Levantar el servidor:
-
-```bash
-npm run dev
+cd VirtualWalletAPI
 ```
 
 ---
 
-### 🧪 Testing
+### 2. Levantar entorno de desarrollo
+
+```bash
+npm run start:dev
+```
+
+👉 Este comando:
+
+* Construye los contenedores
+* Levanta PostgreSQL
+* Levanta la API
+* Ejecuta migraciones de Prisma
+* Crea `.env` automáticamente si no existe
+
+---
+
+### 3. API disponible en:
+
+```
+http://localhost:8080
+```
+
+---
+
+### 🛑 Detener contenedores
+
+```bash
+npm run docker:down:dev
+```
+
+---
+
+## 🏭 Modo producción
+
+```bash
+npm run start:prod
+```
+
+👉 Ejecuta build optimizado + `prisma migrate deploy`
+
+---
+
+## ⚙️ Variables de entorno
+
+En desarrollo se crean automáticamente.
+
+Ejemplo manual:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/wallet
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=3600
+PORT=8080
+```
+
+---
+
+## 🧪 Testing
 
 ```bash
 npm run test
 ```
 
-Los tests utilizan:
+Incluye:
 
 * Jest
 * Supertest
@@ -231,7 +297,7 @@ Los tests utilizan:
 
 ---
 
-### 🧠 Autor
+## 🧠 Autor
 
 Gonzalo Araya
 Backend Developer (Node.js) enfocado en sistemas escalables y arquitectura limpia.

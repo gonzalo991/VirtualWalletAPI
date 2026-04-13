@@ -4,9 +4,16 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "npx tsc && node dist/index.js",
-    "dev": "npx tsx src/index.ts",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "start:dev": "bash setup.dev.sh",
+    "start:prod": "bash setup.prod.sh",
+    "docker:down:dev": "docker compose -f docker-compose.dev.yml down",
+    "docker:down:prod": "docker compose -f docker-compose.prod.yml down",
     "test": "jest"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "keywords": [],
   "author": "",
