@@ -30,14 +30,19 @@ export const createUser = async (dto: CreateUserDto): Promise<UserResponse> => {
 }
 
 export const updateUser = async (id: string, dto: UpdateUserDto): Promise<UserResponse> => {
+    const allowedFields: Partial<UpdateUserDto> = {};
+
     if (!dto || Object.keys(dto).length === 0) throw InvalidFieldsException("No fields to update");
     if (dto.email) validateEmail(dto.email);
+
+    if (dto.username) allowedFields.username = dto.username;
+    if (dto.email) allowedFields.email = dto.email;
     console.debug("Dto validations passed");
 
     try {
         const prismaUser = await prisma.user.update({
             where: { id },
-            data: dto
+            data: allowedFields
         });
 
         console.debug("User updated with data: ", dto);
@@ -47,6 +52,10 @@ export const updateUser = async (id: string, dto: UpdateUserDto): Promise<UserRe
     } catch (error) {
         if ((error as any).code === "P2025") {
             throw NotFoundException("User not found", 404);
+        }
+
+        if ((error as any).code === "P2002") {
+            throw AlreadyExistsException("Email already in use", 409);
         }
 
         if ((error as any).statusCode) throw error;

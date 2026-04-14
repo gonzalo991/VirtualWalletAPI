@@ -121,15 +121,80 @@ describe("User updating", () => {
         expect(res.status).toBe(422);
     });
 
-    // usuario inexistente
-    // flujo crear usuario con id invalido
 
-    //email duplicado
-    // flujo: crear usuario 1 y usuario 2
-    // intentar modificar usuario 2 con email de usuario 1
-    // debe devolver 409
+    it("should return 404 if user does not exist", async () => {
+        const invalidId = "invalid-id";
+
+        const res = await request(app)
+            .patch(`/api/user/update/${invalidId}`)
+            .send({
+                username: "Updated Name"
+            });
+
+        expect(res.status).toBe(404);
+    });
+
+    it("should return 409 if email is duplicated", async () => {
+        const userData1 = {
+            username: "Test User 1",
+            email: "testuser1@email.com",
+            password: "2345678",
+        }
+        const userData2 = {
+            username: "Test User 2",
+            email: "testuser2@email.com",
+            password: "3456789",
+        }
+
+        const user1 = await request(app).post(CREATION_ENDPOINT).send(userData1);
+        const user2 = await request(app).post(CREATION_ENDPOINT).send(userData2);
+
+        const res = await request(app).patch(`/api/user/update/${user1.body.id}`)
+            .send({ email: userData2.email });
+
+        expect(res.status).toBe(409);
+    });
+
+    it("should return 404 or 400 for invalid id format", async () => {
+        const res = await request(app)
+            .patch(`/api/user/update/123`)
+            .send({ username: "Test" });
+
+        expect([400, 404]).toContain(res.status);
+    });
+
+    it("should update only one field", async () => {
+        const user = await request(app).post(CREATION_ENDPOINT).send({
+            username: "Test",
+            email: "test@email.com",
+            password: "123456"
+        });
+
+        const res = await request(app)
+            .patch(`/api/user/update/${user.body.id}`)
+            .send({ username: "OnlyUsernameUpdated" });
+
+        expect(res.status).toBe(200);
+        expect(res.body.username).toBe("OnlyUsernameUpdated");
+        expect(res.body.email).toBe("test@email.com"); // importante
+    });
+
+    it("should ignore forbidden fields", async () => {
+        const user = await request(app).post(CREATION_ENDPOINT).send({
+            username: "Test",
+            email: "test@email.com",
+            password: "123456"
+        });
+
+        const res = await request(app)
+            .patch(`/api/user/update/${user.body.id}`)
+            .send({ id: "hacked-id" });
+
+        expect(res.status).toBe(200);
+        expect(res.body.id).toBe(user.body.id);
+    });
+
 })
-
 
 afterAll(async () => {
     await prisma.$disconnect();

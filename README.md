@@ -145,7 +145,7 @@ For development, `.env` is created automatically if missing.
 Manual example:
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/wallet
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/wallet
 JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES_IN=3600
 PORT=8080
@@ -317,7 +317,7 @@ En desarrollo se crean automáticamente.
 Ejemplo manual:
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/wallet
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/wallet
 JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES_IN=3600
 PORT=8080
