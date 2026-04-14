@@ -64,6 +64,27 @@ This project emphasizes:
 
 ---
 
+## ⚙️ Prerequisites
+
+Before running the project, make sure you have the following installed:
+
+* Docker (recommended: Docker Desktop or Docker Engine)
+* Docker Compose
+* Node.js v22 LTS (only required if running outside Docker)
+* npm
+* Git
+
+🪟 Windows Users
+
+It is strongly recommended to use:
+
+* WSL2 (Windows Subsystem for Linux)
+* A Linux distribution (Ubuntu recommended)
+
+👉 Run the project inside WSL for best compatibility (same as Linux environment).
+
+---
+
 ## ⚙️ Quick Start (Recommended - Docker)
 
 ### 1. Clone repository
@@ -212,6 +233,27 @@ El proyecto prioriza:
 * Validación y manejo de errores consistente
 * Testing de endpoints reales (no mocks)
 * Escalabilidad en backend
+
+---
+
+⚙️ Requisitos previos
+
+Antes de ejecutar el proyecto, asegurate de tener instalado:
+
+* Docker (recomendado: Docker Desktop o Docker Engine)
+* Docker Compose
+* Node.js v22 LTS (solo si se ejecuta fuera de Docker)
+* npm
+* Git
+
+🪟 Usuarios de Windows
+
+Se recomienda usar:
+
+* WSL2 (Windows Subsystem for Linux)
+* Una distribución Linux (recomendado Ubuntu)
+
+👉 Ejecutar el proyecto dentro de WSL para evitar problemas de compatibilidad.
 
 ---
 
