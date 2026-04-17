@@ -8,7 +8,7 @@ Virtual wallet API built with Node.js, TypeScript and Prisma, focused on backend
 
 ---
 
-### 🚀 Objective
+## 🚀 Objective
 
 This project simulates a digital wallet system where users can register, authenticate, and operate with a balance system.
 
@@ -16,7 +16,7 @@ It is designed as a solid backend foundation to evolve into more complex systems
 
 ---
 
-### 🧱 Tech Stack
+## 🧱 Tech Stack
 
 * Node.js (v22 LTS – Dockerized)
 * TypeScript
@@ -29,7 +29,7 @@ It is designed as a solid backend foundation to evolve into more complex systems
 
 ---
 
-### 🔑 Current Features
+## 🔑 Current Features
 
 * User registration
 * JWT authentication (in progress)
@@ -40,7 +40,7 @@ It is designed as a solid backend foundation to evolve into more complex systems
 
 ---
 
-### 🔜 Upcoming Features
+## 🔜 Upcoming Features
 
 * User-to-user transfers
 * Balance system
@@ -52,9 +52,7 @@ It is designed as a solid backend foundation to evolve into more complex systems
 
 ---
 
-### 📌 Technical Focus
-
-This project emphasizes:
+## 📌 Technical Focus
 
 * Clean and maintainable code
 * Separation of concerns
@@ -66,26 +64,24 @@ This project emphasizes:
 
 ## ⚙️ Prerequisites
 
-Before running the project, make sure you have the following installed:
-
-* Docker (recommended: Docker Desktop or Docker Engine)
+* Docker (Docker Desktop or Docker Engine)
 * Docker Compose
-* Node.js v22 LTS (only required if running outside Docker)
+* Node.js v22 LTS (only if running outside Docker)
 * npm
 * Git
 
-🪟 Windows Users
+### 🪟 Windows Users
 
-It is strongly recommended to use:
+Recommended setup:
 
 * WSL2 (Windows Subsystem for Linux)
-* A Linux distribution (Ubuntu recommended)
+* Ubuntu or similar Linux distro
 
-👉 Run the project inside WSL for best compatibility (same as Linux environment).
+Run the project inside WSL for best compatibility.
 
 ---
 
-## ⚙️ Quick Start (Recommended - Docker)
+## ⚙️ Quick Start (Docker - Recommended)
 
 ### 1. Clone repository
 
@@ -100,6 +96,13 @@ cd VirtualWalletAPI
 
 ```bash
 npm run start:dev
+```
+
+⚠️ First time only (Linux users):
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
 ```
 
 👉 This command will:
@@ -134,15 +137,13 @@ npm run docker:down:dev
 npm run start:prod
 ```
 
-👉 Runs optimized production build + `prisma migrate deploy`
+Runs optimized production build + Prisma migrations (`migrate deploy`)
 
 ---
 
 ## ⚙️ Environment Variables
 
-For development, `.env` is created automatically if missing.
-
-Manual example:
+Example `.env`:
 
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/wallet
@@ -163,7 +164,104 @@ Includes:
 
 * Jest
 * Supertest
-* Real database testing (clean state per test)
+* Real database testing
+
+---
+
+## 🧑‍💻 Development Workflow
+
+1. Start environment
+
+```bash
+npm run start:dev
+```
+
+2. Develop inside `src/`
+
+3. Run migrations (if schema changes)
+
+```bash
+docker exec -it wallet-api-dev npx prisma migrate dev
+```
+
+4. Inspect database (optional)
+
+```bash
+npm run studio
+```
+
+---
+
+## 🛠️ Troubleshooting
+
+### Docker permission denied
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+---
+
+### Docker compose warning (version obsolete)
+
+Remove:
+
+```yaml
+version: "3.9"
+```
+
+---
+
+### Volume error
+
+```yaml
+volumes:
+  postgres_dev_data:
+  node_modules:
+```
+
+---
+
+### Prisma Studio error (xdg-open)
+
+Ignore it — open manually:
+
+```
+http://localhost:5555
+```
+
+---
+
+### Prisma Studio not accessible
+
+Make sure:
+
+```yaml
+ports:
+  - "5555:5555"
+```
+
+Run:
+
+```bash
+npm run studio
+```
+
+5. Check API logs
+
+```bash
+npm run logs
+```
+
+---
+
+### Reset environment
+
+```bash
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up --build
+```
 
 ---
 
@@ -180,84 +278,51 @@ API de billetera virtual desarrollada con Node.js, TypeScript y Prisma, enfocada
 
 ---
 
-### 🚀 Objetivo
+## 🚀 Objetivo
 
 Este proyecto simula una billetera digital donde los usuarios pueden registrarse, autenticarse y operar con un sistema de balance.
 
-Está diseñado como una base sólida para evolucionar hacia sistemas más complejos, incluyendo manejo de concurrencia y futura integración con tecnologías blockchain.
+Está diseñado como una base sólida para evolucionar hacia sistemas más complejos, incluyendo manejo de concurrencia e integración futura con blockchain.
 
 ---
 
-### 🧱 Tecnologías
+## 🧱 Tecnologías
 
 * Node.js (v22 LTS – Dockerizado)
 * TypeScript
 * Express
 * PostgreSQL
 * Prisma ORM
-* JWT (autenticación)
+* JWT
 * Docker
-* Jest + Supertest (testing)
+* Jest + Supertest
 
 ---
 
-### 🔑 Funcionalidades actuales
+## 🔑 Funcionalidades actuales
 
 * Registro de usuarios
-* Autenticación con JWT (en progreso)
-* Validación de datos (DTO + validators)
+* Autenticación JWT (en progreso)
+* Validación de datos
 * Manejo de errores centralizado
-* Testing de endpoints (HTTP)
-* Arquitectura modular (controller / service)
+* Testing de endpoints
+* Arquitectura modular
 
 ---
 
-### 🔜 Próximas funcionalidades
+## 🔜 Próximas funcionalidades
 
 * Transferencias entre usuarios
 * Sistema de balance
 * Historial de transacciones
-* Manejo de concurrencia (race conditions)
-* Middleware de autorización por roles
-* Refactor completo a Clean Architecture
-* Integración con smart contracts (blockchain)
+* Manejo de concurrencia
+* Autorización por roles
+* Refactor a Clean Architecture
+* Integración blockchain
 
 ---
 
-### 📌 Enfoque técnico
-
-El proyecto prioriza:
-
-* Código limpio y mantenible
-* Separación de responsabilidades
-* Validación y manejo de errores consistente
-* Testing de endpoints reales (no mocks)
-* Escalabilidad en backend
-
----
-
-⚙️ Requisitos previos
-
-Antes de ejecutar el proyecto, asegurate de tener instalado:
-
-* Docker (recomendado: Docker Desktop o Docker Engine)
-* Docker Compose
-* Node.js v22 LTS (solo si se ejecuta fuera de Docker)
-* npm
-* Git
-
-🪟 Usuarios de Windows
-
-Se recomienda usar:
-
-* WSL2 (Windows Subsystem for Linux)
-* Una distribución Linux (recomendado Ubuntu)
-
-👉 Ejecutar el proyecto dentro de WSL para evitar problemas de compatibilidad.
-
----
-
-## ⚙️ Inicio rápido (Recomendado - Docker)
+## ⚙️ Inicio rápido (Docker)
 
 ### 1. Clonar repositorio
 
@@ -268,19 +333,18 @@ cd VirtualWalletAPI
 
 ---
 
-### 2. Levantar entorno de desarrollo
+### 2. Levantar entorno
 
 ```bash
 npm run start:dev
 ```
 
-👉 Este comando:
+⚠️ Solo la primera vez (Linux):
 
-* Construye los contenedores
-* Levanta PostgreSQL
-* Levanta la API
-* Ejecuta migraciones de Prisma
-* Crea `.env` automáticamente si no existe
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
 
 ---
 
@@ -306,15 +370,9 @@ npm run docker:down:dev
 npm run start:prod
 ```
 
-👉 Ejecuta build optimizado + `prisma migrate deploy`
-
 ---
 
 ## ⚙️ Variables de entorno
-
-En desarrollo se crean automáticamente.
-
-Ejemplo manual:
 
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/wallet
@@ -331,15 +389,71 @@ PORT=8080
 npm run test
 ```
 
-Incluye:
+---
 
-* Jest
-* Supertest
-* Base de datos real (limpieza por test)
+## 🧑‍💻 Flujo de desarrollo
+
+1. Levantar entorno
+
+```bash
+npm run start:dev
+```
+
+2. Programar en `src/`
+
+3. Migraciones
+
+```bash
+docker exec -it wallet-api-dev npx prisma migrate dev
+```
+
+4. Ver base de datos
+
+```bash
+npm run studio
+```
+
+5. Ver logs de la api
+
+```bash
+npm run logs
+```
+
+---
+
+## 🛠️ Problemas comunes
+
+### Error permisos Docker
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+---
+
+### Error Prisma Studio
+
+Abrir manualmente:
+
+```
+http://localhost:5555
+```
+
+---
+
+### Reset entorno
+
+```bash
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up --build
+```
 
 ---
 
 ## 🧠 Autor
 
 Gonzalo Araya
-Backend Developer (Node.js) enfocado en sistemas escalables y arquitectura limpia.
+Backend Developer enfocado en sistemas escalables y arquitectura limpia.
+
+---
