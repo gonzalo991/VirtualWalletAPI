@@ -65,16 +65,24 @@ export const updateUser = async (id: string, dto: UpdateUserDto): Promise<UserRe
 }
 
 export const getUserByEmail = async (email: string): Promise<UserResponse> => {
-    if (!email) throw InvalidFieldsException("Email is required to fetch user by email");
-    validateEmail(email);
+    const sanitizedEmail = email?.trim();
+
+    if (!sanitizedEmail) {
+        throw InvalidFieldsException("Email is required to fetch user by email");
+    }
+
+    validateEmail(sanitizedEmail);
 
     try {
         const prismaUser = await prisma.user.findUnique({
-            where: { email }
+            where: { email: sanitizedEmail }
         });
+
         if (!prismaUser) throw NotFoundException("User not found");
+
         const user = UserMapper.toDomain(prismaUser);
         return UserMapper.toResponse(user);
+
     } catch (error) {
         if ((error as any).statusCode) throw error;
         throw ServiceException("Unexpected error fetching user by email");

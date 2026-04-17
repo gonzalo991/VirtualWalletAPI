@@ -28,7 +28,7 @@ export const updateUserController = async (req: Request, res: Response, next: Ne
 
 export const getUserByEmailController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const email = req.query.email?.toString() || "";
+        const email = req.params.email?.toString().trim() || "";
         const user = await getUserByEmail(email);
         return res.status(200).json(user);
     } catch (error) {
@@ -39,7 +39,7 @@ export const getUserByEmailController = async (req: Request, res: Response, next
 
 export const getUserByIdController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const id = req.query.id?.toString() || "";
+        const id = req.params.id?.toString() || "";
         const user = await getUserById(id);
         return res.status(200).json(user);
     } catch (error) {

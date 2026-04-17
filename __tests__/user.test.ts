@@ -193,8 +193,62 @@ describe("User updating", () => {
         expect(res.status).toBe(200);
         expect(res.body.id).toBe(user.body.id);
     });
+});
 
-})
+describe("Get an user by email", () => {
+    it("should get an user using an existing email and return 200", async () => {
+        const user = await request(app).post(CREATION_ENDPOINT).send({
+            username: "Test",
+            email: "test@email.com",
+            password: "123456"
+        });
+
+        const res = await request(app).get(`/api/user/email/${user.body.email}`)
+
+        expect(res.status).toBe(200);
+        expect(res.body).toMatchObject({
+            username: "Test",
+            email: "test@email.com"
+        });
+        expect(res.body).not.toHaveProperty("password");
+    });
+
+    it("should return 422 if email is invalid", async () => {
+        const res = await request(app)
+            .get("/api/user/email/invalid-email");
+        expect(res.status).toBe(422);
+    });
+
+    it("should return 404 if user is not found or does not exists", async () => {
+        const doesNotExistEmail = "test@doesnotexists.com"
+        const res = await request(app).get(`/api/user/email/${doesNotExistEmail}`);
+        expect(res.status).toBe(404);
+    });
+});
+
+describe("Get an user by id", () => {
+    it("should get an user using an existing id and return 200", async () => {
+        const user = await request(app).post(CREATION_ENDPOINT).send({
+            username: "Test",
+            email: "test@email.com",
+            password: "123456"
+        });
+
+        const res = await request(app).get(`/api/user/id/${user.body.id}`)
+
+        expect(res.status).toBe(200);
+        expect(res.body).toMatchObject({
+            username: "Test",
+            email: "test@email.com"
+        });
+        expect(res.body).not.toHaveProperty("password");
+    });
+
+    it("should return 404 if id is not valid", async () => {
+        const res = await request(app).get(`/api/user/id/invalid-id`);
+        expect(res.status).toBe(404);
+    });
+});
 
 afterAll(async () => {
     await prisma.$disconnect();
