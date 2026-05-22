@@ -9,29 +9,44 @@ export interface AuthRequest extends Request {
     userId?: string;
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+interface JwtPayload {
+    id: string;
+    email: string;
+}
+
+export const authMiddleware = (
+    req: AuthRequest,
+    _res: Response,
+    next: NextFunction
+) => {
     try {
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
-            console.log(`[Auth Middleware] Token missed.`);
+            console.log("[Auth Middleware] Token missed.");
             throw UnauthorizedException("Token not provided.");
         }
 
         const [, token] = authHeader.split(" ");
 
         if (!token) {
-            console.log(`[Auth Middleware] Token is not valid.`);
+            console.log("[Auth Middleware] Invalid token format.");
             throw UnauthorizedException("Invalid token");
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+        const decoded = jwt.verify(
+            token,
+            JWT_SECRET
+        ) as JwtPayload;
 
-        req.userId = decoded.userId;
+        req.userId = decoded.id;
 
         return next();
+
     } catch (error) {
-        console.log(`[Auth Middleware] Middleware authorization error.`);
-        return next(UnauthorizedException("Unauthorized."));
+        console.log("[Auth Middleware] Middleware authorization error.");
+        return next(
+            UnauthorizedException("Unauthorized.")
+        );
     }
-}
+};

@@ -1,3 +1,4 @@
+import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import {
     createUserController, updateUserController,
     getUserByEmailController, getUserByIdController
@@ -7,8 +8,8 @@ import { Router } from "express";
 const userRouter: Router = Router();
 
 userRouter.post("/create", createUserController);
-userRouter.patch("/update/:id", updateUserController);
-userRouter.get("/email/:email", getUserByEmailController);
-userRouter.get("/id/:id", getUserByIdController);
+userRouter.patch("/update/:id", authMiddleware, updateUserController);
+userRouter.get("/email/:email", authMiddleware, getUserByEmailController);
+userRouter.get("/id/:id", authMiddleware, getUserByIdController);
 
 export default userRouter;

@@ -5,6 +5,7 @@ import { UserMapper } from "./response/UserMapper.js";
 import type { UpdateUserDto } from "./dto/UpdateUser.dto.js";
 import { AlreadyExistsException, InvalidFieldsException, NotFoundException, ServiceException } from "../../exceptions/Exception.js";
 import { validateDtoFields, validateEmail } from "../../validators/user.validators.js";
+import { hashPassword } from "../../utils/hash.js";
 
 export const createUser = async (dto: CreateUserDto): Promise<UserResponse> => {
     if (!dto) throw InvalidFieldsException("User data is required to create an user!");
@@ -17,9 +18,13 @@ export const createUser = async (dto: CreateUserDto): Promise<UserResponse> => {
         if (existingUser) throw AlreadyExistsException("User with this email already exists");
 
         console.debug("Creating user with data: ", dto);
+        const hashedPassword = await hashPassword(dto.password);
 
         const prismaUser = await prisma.user.create({
-            data: dto
+            data: {
+                ...dto,
+                password: hashedPassword as any,
+            }
         });
         const user = UserMapper.toDomain(prismaUser);
         return UserMapper.toResponse(user);

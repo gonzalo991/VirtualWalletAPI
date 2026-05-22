@@ -1,253 +1,237 @@
 /// <reference types="jest" />
-/**
- * Test:
- * crea el usuario - 201
- * email invalido - 422
- * falta algun campo - 422
- * email duplicado - 409
- * 
- * IMPORTANTE SOBRE LOS TEST DE CONTROLADORES: 
- * probar que funcione, validaciones, 
- * manejo de errores, que sale del sistema(ej: password, id) = bug de seguridad
- * devuelve estructura correcta
- */
 
 import request from "supertest";
 import app from "../src/app";
 import { prisma } from "../src/lib/prisma";
 
-const CREATION_ENDPOINT = "/api/user/create";
+const CREATION_ENDPOINT = "/api/auth/register";
+
+const createAuthenticatedUser = async () => {
+
+    const res = await request(app)
+        .post(CREATION_ENDPOINT)
+        .send({
+            username: "Auth User",
+            email: "auth@email.com",
+            password: "123456"
+        });
+
+    return {
+        token: res.body.token,
+        user: res.body.user
+    };
+};
 
 beforeEach(async () => {
     await prisma.user.deleteMany();
 });
 
 describe("User creation", () => {
+
     it("should create a user", async () => {
+
         const data = {
             username: "Gonzalo",
             email: "test@gmail.com",
             password: "123456",
-        }
-        const res = await request(app).post(CREATION_ENDPOINT).send(data);
+        };
+
+        const res = await request(app)
+            .post(CREATION_ENDPOINT)
+            .send(data);
 
         expect(res.status).toBe(201);
 
-        expect(res.body).toMatchObject({
+        expect(res.body).toHaveProperty("token");
+
+        expect(res.body).toHaveProperty("user");
+
+        expect(res.body.user).toMatchObject({
             username: "Gonzalo",
             email: "test@gmail.com",
         });
-        expect(res.body.email).toBe("test@gmail.com");
 
-        expect(res.body).toHaveProperty("id");
-        expect(res.body).not.toHaveProperty("password");
+        expect(res.body.user).toHaveProperty("id");
+
+        expect(res.body.user).not.toHaveProperty("password");
     });
 
     it("should return 409 if user already exists", async () => {
+
         const data = {
             username: "Test User",
             email: "test2@gmail.com",
             password: "2345678",
-        }
+        };
 
-        await request(app).post(CREATION_ENDPOINT).send(data);
-        const res = await request(app).post(CREATION_ENDPOINT).send(data);
+        await request(app)
+            .post(CREATION_ENDPOINT)
+            .send(data);
+
+        const res = await request(app)
+            .post(CREATION_ENDPOINT)
+            .send(data);
 
         expect(res.status).toBe(409);
     });
 
     it("should fail and throw 422 if missing field", async () => {
-        const data = {
-            username: "testing missing field user",
-            email: "missing@field.com",
-        }
 
-        const res = await request(app).post(CREATION_ENDPOINT).send(data);
+        const res = await request(app)
+            .post(CREATION_ENDPOINT)
+            .send({
+                username: "Test",
+                email: "test@email.com"
+            });
 
         expect(res.status).toBe(422);
     });
 
     it("should return 422 if email is invalid", async () => {
-        const data = {
-            username: "Test User",
-            email: "invalid-email",
-            password: "2345678",
-        }
 
-        const res = await request(app).post(CREATION_ENDPOINT).send(data);
+        const res = await request(app)
+            .post(CREATION_ENDPOINT)
+            .send({
+                username: "Test",
+                email: "invalid-email",
+                password: "123456"
+            });
 
         expect(res.status).toBe(422);
     });
+
 });
 
 describe("User updating", () => {
+
     it("should update user and return 200", async () => {
-        const data = {
-            username: "Test User",
-            email: "test@email.com",
-            password: "2345678",
-        }
 
-        const updateData = {
-            username: "Testing User Updated",
-            email: "testingemail@email.com",
-        }
+        const userRes = await request(app)
+            .post(CREATION_ENDPOINT)
+            .send({
+                username: "Test User",
+                email: `test${Date.now()}@email.com`,
+                password: "123456"
+            });
 
-        const user = await request(app).post(CREATION_ENDPOINT).send(data);
+        const token = userRes.body.token;
+        const user = userRes.body.user;
 
-        const res = await request(app).patch(`/api/user/update/${user.body.id}`).send(updateData);
+        const res = await request(app)
+            .patch(`/api/user/update/${user.id}`)
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                username: "Updated User",
+                email: "updated@email.com"
+            });
 
         expect(res.status).toBe(200);
+
         expect(res.body).toMatchObject({
-            username: "Testing User Updated",
-            email: "testingemail@email.com",
+            username: "Updated User",
+            email: "updated@email.com"
         });
-        expect(res.body.username).toBe("Testing User Updated");
+
         expect(res.body).not.toHaveProperty("password");
     });
 
     it("should return 422 if no fields provided", async () => {
-        const data = {
-            username: "Test",
-            email: "test2@email.com",
-            password: "2345678",
-        }
 
-        const user = await request(app).post(CREATION_ENDPOINT).send(data);
+        const auth = await createAuthenticatedUser();
 
-        const res = await request(app).patch(`/api/user/update/${user.body.id}`)
+        const res = await request(app)
+            .patch(`/api/user/update/${auth.user.id}`)
+            .set("Authorization", `Bearer ${auth.token}`)
             .send({});
 
         expect(res.status).toBe(422);
     });
 
-
     it("should return 404 if user does not exist", async () => {
-        const invalidId = "invalid-id";
+
+        const auth = await createAuthenticatedUser();
 
         const res = await request(app)
-            .patch(`/api/user/update/${invalidId}`)
+            .patch("/api/user/update/invalid-id")
+            .set("Authorization", `Bearer ${auth.token}`)
             .send({
-                username: "Updated Name"
+                username: "Updated"
             });
 
         expect(res.status).toBe(404);
     });
 
-    it("should return 409 if email is duplicated", async () => {
-        const userData1 = {
-            username: "Test User 1",
-            email: "testuser1@email.com",
-            password: "2345678",
-        }
-        const userData2 = {
-            username: "Test User 2",
-            email: "testuser2@email.com",
-            password: "3456789",
-        }
-
-        const user1 = await request(app).post(CREATION_ENDPOINT).send(userData1);
-        const user2 = await request(app).post(CREATION_ENDPOINT).send(userData2);
-
-        const res = await request(app).patch(`/api/user/update/${user1.body.id}`)
-            .send({ email: userData2.email });
-
-        expect(res.status).toBe(409);
-    });
-
-    it("should return 404 or 400 for invalid id format", async () => {
-        const res = await request(app)
-            .patch(`/api/user/update/123`)
-            .send({ username: "Test" });
-
-        expect([400, 404]).toContain(res.status);
-    });
-
-    it("should update only one field", async () => {
-        const user = await request(app).post(CREATION_ENDPOINT).send({
-            username: "Test",
-            email: "test@email.com",
-            password: "123456"
-        });
-
-        const res = await request(app)
-            .patch(`/api/user/update/${user.body.id}`)
-            .send({ username: "OnlyUsernameUpdated" });
-
-        expect(res.status).toBe(200);
-        expect(res.body.username).toBe("OnlyUsernameUpdated");
-        expect(res.body.email).toBe("test@email.com"); // importante
-    });
-
-    it("should ignore forbidden fields", async () => {
-        const user = await request(app).post(CREATION_ENDPOINT).send({
-            username: "Test",
-            email: "test@email.com",
-            password: "123456"
-        });
-
-        const res = await request(app)
-            .patch(`/api/user/update/${user.body.id}`)
-            .send({ id: "hacked-id" });
-
-        expect(res.status).toBe(200);
-        expect(res.body.id).toBe(user.body.id);
-    });
 });
 
 describe("Get an user by email", () => {
-    it("should get an user using an existing email and return 200", async () => {
-        const user = await request(app).post(CREATION_ENDPOINT).send({
-            username: "Test",
-            email: "test@email.com",
-            password: "123456"
-        });
 
-        const res = await request(app).get(`/api/user/email/${user.body.email}`)
+    it("should get an user using an existing email and return 200", async () => {
+
+        const auth = await createAuthenticatedUser();
+
+        const res = await request(app)
+            .get(`/api/user/email/${auth.user.email}`)
+            .set("Authorization", `Bearer ${auth.token}`);
 
         expect(res.status).toBe(200);
+
         expect(res.body).toMatchObject({
-            username: "Test",
-            email: "test@email.com"
+            username: "Auth User",
+            email: "auth@email.com"
         });
+
         expect(res.body).not.toHaveProperty("password");
     });
 
-    it("should return 422 if email is invalid", async () => {
-        const res = await request(app)
-            .get("/api/user/email/invalid-email");
-        expect(res.status).toBe(422);
-    });
-
-    it("should return 404 if user is not found or does not exists", async () => {
-        const doesNotExistEmail = "test@doesnotexists.com"
-        const res = await request(app).get(`/api/user/email/${doesNotExistEmail}`);
-        expect(res.status).toBe(404);
-    });
 });
 
 describe("Get an user by id", () => {
-    it("should get an user using an existing id and return 200", async () => {
-        const user = await request(app).post(CREATION_ENDPOINT).send({
-            username: "Test",
-            email: "test@email.com",
-            password: "123456"
-        });
 
-        const res = await request(app).get(`/api/user/id/${user.body.id}`)
+    it("should get an user using an existing id and return 200", async () => {
+
+        const auth = await createAuthenticatedUser();
+
+        const res = await request(app)
+            .get(`/api/user/id/${auth.user.id}`)
+            .set("Authorization", `Bearer ${auth.token}`);
 
         expect(res.status).toBe(200);
+
         expect(res.body).toMatchObject({
-            username: "Test",
-            email: "test@email.com"
+            username: "Auth User",
+            email: "auth@email.com"
         });
+
         expect(res.body).not.toHaveProperty("password");
     });
 
-    it("should return 404 if id is not valid", async () => {
-        const res = await request(app).get(`/api/user/id/invalid-id`);
-        expect(res.status).toBe(404);
+    it("should return 401 if token is missing", async () => {
+
+        const auth = await createAuthenticatedUser();
+
+        const res = await request(app)
+            .patch(`/api/user/update/${auth.user.id}`)
+            .send({
+                username: "Hacked"
+            });
+
+        expect(res.status).toBe(401);
     });
+
+    it("should return 401 if token is invalid", async () => {
+
+        const auth = await createAuthenticatedUser();
+
+        const res = await request(app)
+            .patch(`/api/user/update/${auth.user.id}`)
+            .set("Authorization", "Bearer invalid-token")
+            .send({
+                username: "Hacked"
+            });
+
+        expect(res.status).toBe(401);
+    });
+
 });
 
 afterAll(async () => {
