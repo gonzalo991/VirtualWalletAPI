@@ -1,9 +1,11 @@
 import bcrypt from "bcrypt";
 
-export const hashPassword = (password: string) => {
-    return bcrypt.hash(password, 10);
+const SALT_ROUNDS = 10;
+
+export const hashPassword = (password: string): Promise<string> => {
+    return bcrypt.hash(password, SALT_ROUNDS);
 }
 
-export const comparePassword = (password: string, hash: string) => {
+export const comparePassword = (password: string, hash: string): Promise<boolean> => {
     return bcrypt.compare(password, hash);
 }

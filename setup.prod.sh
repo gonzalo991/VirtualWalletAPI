@@ -2,7 +2,7 @@
 
 echo "🚀 Starting PROD environment..."
 
-docker compose -f docker-compose.prod.yml up --build -d
+docker compose -f docker-compose.prod.yml up --build
 
 echo "⏳ Waiting for database..."
 
