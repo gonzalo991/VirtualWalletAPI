@@ -1,28 +1,17 @@
-import type { Request, Response, NextFunction } from "express";
 import { register, login } from "./auth.service";
+import { asyncHandler } from "../../utils/asyncHandler";
+import { ApiResponse } from "../../utils/apiResponse";
 
-export const registerController = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    try {
-        const response = await register(req.body);
-        return res.status(201).json(response);
-    } catch (error) {
-        return next(error);
-    }
-}
+export const registerController = asyncHandler(async (req, res) => {
+    const response = await register(req.body);
+    return res.status(201).json(
+        ApiResponse.success("Registration successful", response,)
+    );
+});
 
-export const loginController = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    try {
-        const response = await login(req.body);
-        return res.status(200).json(response);
-    } catch (error) {
-        return next(error);
-    }
-}
+export const loginController = asyncHandler(async (req, res) => {
+    const response = await login(req.body);
+    return res.status(200).json(
+        ApiResponse.success("Login Successful", response)
+    );
+});

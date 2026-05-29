@@ -4,20 +4,15 @@ import { prisma } from "../../lib/prisma.js";
 import { UserMapper } from "./response/UserMapper.js";
 import type { UpdateUserDto } from "./dto/UpdateUser.dto.js";
 import { AlreadyExistsException, InvalidFieldsException, NotFoundException, ServiceException } from "../../exceptions/Exception.js";
-import { validateDtoFields, validateEmail } from "../../validators/user.validators.js";
 import { hashPassword } from "../../utils/hash.js";
+import { logger } from "../../lib/logger.js";
 
 export const createUser = async (dto: CreateUserDto): Promise<UserResponse> => {
-    if (!dto) throw InvalidFieldsException("User data is required to create an user!");
-
-    validateDtoFields(dto);
-    validateEmail(dto.email);
-
     try {
         const existingUser = await prisma.user.findUnique({ where: { email: dto.email } });
         if (existingUser) throw AlreadyExistsException("User with this email already exists");
 
-        console.debug("Creating user with data: ", dto);
+        logger.debug(`Creating user with data: \n ${dto}`);
         const hashedPassword = await hashPassword(dto.password);
 
         const prismaUser = await prisma.user.create({
@@ -36,13 +31,9 @@ export const createUser = async (dto: CreateUserDto): Promise<UserResponse> => {
 
 export const updateUser = async (id: string, dto: UpdateUserDto): Promise<UserResponse> => {
     const allowedFields: Partial<UpdateUserDto> = {};
-
-    if (!dto || Object.keys(dto).length === 0) throw InvalidFieldsException("No fields to update");
-    if (dto.email) validateEmail(dto.email);
-
     if (dto.username) allowedFields.username = dto.username;
     if (dto.email) allowedFields.email = dto.email;
-    console.debug("Dto validations passed");
+    logger.debug("Dto validations passed");
 
     try {
         const prismaUser = await prisma.user.update({
@@ -50,22 +41,22 @@ export const updateUser = async (id: string, dto: UpdateUserDto): Promise<UserRe
             data: allowedFields
         });
 
-        console.debug("User updated with data: ", dto);
+        logger.debug(`User updated with data: \n ${dto}`);
 
         const user = UserMapper.toDomain(prismaUser);
         return UserMapper.toResponse(user);
     } catch (error) {
         if ((error as any).code === "P2025") {
-            throw NotFoundException("User not found", 404);
+            throw NotFoundException("User not found");
         }
 
         if ((error as any).code === "P2002") {
-            throw AlreadyExistsException("Email already in use", 409);
+            throw AlreadyExistsException("Email already in use");
         }
 
         if ((error as any).statusCode) throw error;
 
-        throw ServiceException("Unexpected error updating user", 500);
+        throw ServiceException("Unexpected error updating user");
     }
 }
 
@@ -75,8 +66,6 @@ export const getUserByEmail = async (email: string): Promise<UserResponse> => {
     if (!sanitizedEmail) {
         throw InvalidFieldsException("Email is required to fetch user by email");
     }
-
-    validateEmail(sanitizedEmail);
 
     try {
         const prismaUser = await prisma.user.findUnique({

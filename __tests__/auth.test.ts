@@ -12,18 +12,20 @@ describe("Auth Requests", () => {
 
     it("should login and return token", async () => {
 
+        const email = "testeando@email.com";
+
         await request(app)
             .post("/api/auth/register")
             .send({
                 username: "Test",
-                email: "test@email.com",
+                email,
                 password: "123456"
             });
 
         const res = await request(app)
             .post("/api/auth/login")
             .send({
-                email: "test@email.com",
+                email,
                 password: "123456"
             });
 
@@ -35,7 +37,7 @@ describe("Auth Requests", () => {
 
         expect(res.body.user).toMatchObject({
             username: "Test",
-            email: "test@email.com"
+            email
         });
 
         expect(res.body.user).not.toHaveProperty("password");

@@ -1,25 +1,21 @@
-import { AlreadyExistsException, InvalidFieldsException, ServiceException, UnauthorizedException } from "../../exceptions/Exception";
+import { AlreadyExistsException, InvalidFieldsException, UnauthorizedException } from "../../exceptions/Exception";
 import { prisma } from "../../lib/prisma";
 import { comparePassword, hashPassword } from "../../utils/hash";
 import { signToken } from "../../utils/jwt";
-import { validateDtoFields, validateEmail } from "../../validators/user.validators";
 import type { LoginDto } from "./dto/Login.dto";
 import type { RegisterDto } from "./dto/Register.dto";
 import type { AuthResponse } from "./response/AuthResponse.dto";
 import { AuthMapper } from "./response/AuthMapper";
+import { logger } from "../../lib/logger";
 
 export const register = async (dto: RegisterDto): Promise<AuthResponse> => {
-
-    validateDtoFields(dto);
-    validateEmail(dto.email);
-
     try {
         const existingUser = await prisma.user.findUnique({
             where: { email: dto.email }
         });
 
         if (existingUser) {
-            console.log(`[Register] User is already registered with this email: ${dto.email}`);
+            logger.info(`[Register] User is already registered with this email: ${dto.email}`);
             throw AlreadyExistsException("Email already in use");
         }
 
@@ -40,39 +36,41 @@ export const register = async (dto: RegisterDto): Promise<AuthResponse> => {
 
         return AuthMapper.toDomain(prismaUser, token);
     } catch (error) {
-        if ((error as any).statusCode) throw error;
-
+        logger.error(`[Register Service Error]`);
         if ((error as any).code === "P2002") {
             throw AlreadyExistsException("Email already exists");
         }
 
-        throw ServiceException("Unexpected error during register");
+        throw error;
     }
 }
-
 export const login = async (dto: LoginDto): Promise<AuthResponse> => {
     if (!dto.email || !dto.password) {
-        console.log("[Login] Dto Validation failed. Missing fields");
+        logger.info("[Login] Dto Validation failed. Missing fields");
         throw InvalidFieldsException("Missing credentials");
     }
 
-    validateEmail(dto.email);
+    const normalizedEmail = dto.email.trim().toLowerCase();
 
     try {
+
         const prismaUser = await prisma.user.findUnique({
-            where: { email: dto.email }
+            where: { email: normalizedEmail }
         });
 
         if (!prismaUser) {
-            console.log(`[Login] User not found with email: ${dto.email}`);
+            logger.info(`[Login] User not found with email: ${normalizedEmail}`);
             throw UnauthorizedException("Invalid credentials");
         }
 
-        const isPasswordValid = await comparePassword(dto.password, prismaUser.password);
+        const isPasswordValid = await comparePassword(
+            dto.password,
+            prismaUser.password
+        );
 
         if (!isPasswordValid) {
-            console.log(`[Login] Password doesnt match`);
-            throw UnauthorizedException("Invalid credentials.");
+            logger.info("[Login] Password doesnt match");
+            throw UnauthorizedException("Invalid credentials");
         }
 
         const token = signToken({
@@ -81,9 +79,9 @@ export const login = async (dto: LoginDto): Promise<AuthResponse> => {
         });
 
         return AuthMapper.toDomain(prismaUser, token);
-    } catch (error) {
-        if ((error as any).statusCode) throw error;
 
-        throw ServiceException("Unexpected error during login");
+    } catch (error) {
+        logger.error(`[Login Service Error]`);
+        throw error;
     }
 }

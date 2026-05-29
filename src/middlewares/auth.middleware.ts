@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { UnauthorizedException } from "../exceptions/Exception";
 import { env } from "../config/env";
+import { logger } from "../lib/logger";
 
 const JWT_SECRET = env.JWT_SECRET;
 
@@ -23,14 +24,14 @@ export const authMiddleware = (
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
-            console.log("[Auth Middleware] Token missed.");
+            logger.info("[Auth Middleware] Token missed.");
             throw UnauthorizedException("Token not provided.");
         }
 
         const [, token] = authHeader.split(" ");
 
         if (!token) {
-            console.log("[Auth Middleware] Invalid token format.");
+            logger.info("[Auth Middleware] Invalid token format.");
             throw UnauthorizedException("Invalid token");
         }
 
@@ -44,7 +45,7 @@ export const authMiddleware = (
         return next();
 
     } catch (error) {
-        console.log("[Auth Middleware] Middleware authorization error.");
+        logger.info("[Auth Middleware] Middleware authorization error.");
         return next(
             UnauthorizedException("Unauthorized.")
         );
