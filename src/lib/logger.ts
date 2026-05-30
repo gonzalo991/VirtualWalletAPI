@@ -1,9 +1,18 @@
-export const logger = {
-    info: (message: string) => console.log(message),
-    error: (message: string) => console.log(message),
-    debug: (message: string) => {
-        if (process.env.NODE_ENV === "development") {
-            console.debug(message);
+import pino from "pino";
+
+const isProd = process.env.NODE_ENV === "production";
+
+export const logger = pino({
+    level: isProd ? "info" : "debug",
+
+    ...(isProd ? {} : {
+        transport: {
+            target: "pino-pretty",
+            options: {
+                colorize: true,
+                translateTime: "SYS:standard",
+                ignore: "pid,hostname"
+            }
         }
-    }
-};
+    })
+});
