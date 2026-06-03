@@ -8,6 +8,7 @@ import type { AuthResponse } from "./response/AuthResponse.dto";
 import { AuthMapper } from "./response/AuthMapper";
 import { logger } from "../../lib/logger";
 import type { RefreshTokenResponse } from "./response/RefreshTokenResponse";
+import { randomUUID } from "crypto";
 
 export const register = async (dto: RegisterDto): Promise<AuthResponse> => {
     try {
@@ -37,7 +38,8 @@ export const register = async (dto: RegisterDto): Promise<AuthResponse> => {
 
         const refreshToken = signRefreshToken({
             id: prismaUser.id,
-            email: prismaUser.email
+            email: prismaUser.email,
+            jti: randomUUID(),
         });
 
         await prisma.refreshToken.create({
@@ -97,6 +99,7 @@ export const login = async (dto: LoginDto): Promise<AuthResponse> => {
         const refreshToken = signRefreshToken({
             id: prismaUser.id,
             email: prismaUser.email,
+            jti: randomUUID(),
         });
 
         await prisma.refreshToken.create({
@@ -143,10 +146,6 @@ export const refreshSession = async (refreshToken: string): Promise<RefreshToken
 
         const payload = verifyRefreshToken(refreshToken);
 
-        await prisma.refreshToken.delete({
-            where: { token: refreshToken }
-        });
-
         const accessToken = signToken({
             id: payload.id,
             email: payload.email,
@@ -155,19 +154,23 @@ export const refreshSession = async (refreshToken: string): Promise<RefreshToken
         const newRefreshToken = signRefreshToken({
             id: payload.id,
             email: payload.email,
+            jti: randomUUID(),
         });
 
-        await prisma.refreshToken.create({
-            data: {
-                token: newRefreshToken,
+        await prisma.$transaction([
+            prisma.refreshToken.delete({
+                where: { token: refreshToken }
+            }),
+            prisma.refreshToken.create({
+                data: {
+                    token: newRefreshToken,
+                    userId: payload.id, expiresAt: new Date(
+                        Date.now() + 7 * 24 * 60 * 60 * 1000
+                    )
+                }
+            })
+        ]);
 
-                userId: payload.id,
-
-                expiresAt: new Date(
-                    Date.now() + 7 * 24 * 60 * 60 * 1000
-                )
-            }
-        });
 
         return AuthMapper.toRefreshTokenResponse(accessToken, newRefreshToken);
     } catch (error) {
@@ -185,11 +188,11 @@ export const logout = async (refreshToken: string) => {
 }
 
 export const logoutAllSessions = async (userId: string) => {
-        await prisma.refreshToken.deleteMany({
-            where: {
-                userId
-            }
-        });
+    await prisma.refreshToken.deleteMany({
+        where: {
+            userId
+        }
+    });
 
-        return null;
-    };
+    return null;
+};

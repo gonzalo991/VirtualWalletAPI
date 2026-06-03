@@ -1,6 +1,4 @@
 import app from './app.js';
-import { config } from 'dotenv';
-config();
 
 const PORT: number = Number(process.env.PORT) || 8080;
 

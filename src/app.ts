@@ -5,7 +5,6 @@ import helmet from "helmet";
 import cors from "cors";
 import compression from "compression";
 import morgan from "morgan";
-import xss from "xss-clean";
 import { apiRateLimit } from "./middlewares/rateLimit.middleware.js";
 
 const app: Express = express();
@@ -16,7 +15,6 @@ app.use(morgan("dev"));
 app.use(helmet());
 app.use(cors());
 app.use(compression());
-app.use(xss())
 app.use(apiRateLimit);
 app.use("/api", router);
 app.use(errorMiddleware);

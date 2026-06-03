@@ -7,22 +7,22 @@ import { prisma } from "../src/lib/prisma";
 const CREATION_ENDPOINT = "/api/auth/register";
 
 const createAuthenticatedUser = async () => {
-
-    const res = await request(app)
-        .post(CREATION_ENDPOINT)
+    const res = await request(app).post(CREATION_ENDPOINT)
         .send({
             username: "Auth User",
             email: "auth@email.com",
-            password: "123456"
+            password: "12345678"
         });
 
     return {
-        token: res.body.token,
-        user: res.body.user
-    };
-};
+        accessToken: res.body.data.accessToken,
+        refreshToken: res.body.data.refreshToken,
+        user: res.body.data.user,
+    }
+}
 
 beforeEach(async () => {
+    await prisma.refreshToken.deleteMany();
     await prisma.user.deleteMany();
 });
 
@@ -41,19 +41,18 @@ describe("User creation", () => {
             .send(data);
 
         expect(res.status).toBe(201);
+        expect(res.body.success).toBe(true);
+        expect(res.body.data).toHaveProperty("accessToken");
+        expect(res.body.data).toHaveProperty("refreshToken");
+        expect(res.body.data).toHaveProperty("user");
 
-        expect(res.body).toHaveProperty("token");
-
-        expect(res.body).toHaveProperty("user");
-
-        expect(res.body.user).toMatchObject({
+        expect(res.body.data.user).toMatchObject({
             username: "Gonzalo",
-            email: "test@gmail.com",
+            email: "test@gmail.com"
         });
 
-        expect(res.body.user).toHaveProperty("id");
-
-        expect(res.body.user).not.toHaveProperty("password");
+        expect(res.body.data.user).toHaveProperty("id");
+        expect(res.body.data.user).not.toHaveProperty("password");
     });
 
     it("should return 409 if user already exists", async () => {
@@ -114,8 +113,8 @@ describe("User updating", () => {
                 password: "123456"
             });
 
-        const token = userRes.body.token;
-        const user = userRes.body.user;
+        const token = userRes.body.data.accessToken;
+        const user = userRes.body.data.user;
 
         const res = await request(app)
             .patch(`/api/user/update/${user.id}`)
@@ -127,12 +126,12 @@ describe("User updating", () => {
 
         expect(res.status).toBe(200);
 
-        expect(res.body).toMatchObject({
+        expect(res.body.data).toMatchObject({
             username: "Updated User",
             email: "updated@email.com"
         });
 
-        expect(res.body).not.toHaveProperty("password");
+        expect(res.body.data).not.toHaveProperty("password");
     });
 
     it("should return 422 if no fields provided", async () => {
@@ -141,7 +140,7 @@ describe("User updating", () => {
 
         const res = await request(app)
             .patch(`/api/user/update/${auth.user.id}`)
-            .set("Authorization", `Bearer ${auth.token}`)
+            .set("Authorization", `Bearer ${auth.accessToken}`)
             .send({});
 
         expect(res.status).toBe(422);
@@ -153,7 +152,7 @@ describe("User updating", () => {
 
         const res = await request(app)
             .patch("/api/user/update/invalid-id")
-            .set("Authorization", `Bearer ${auth.token}`)
+            .set("Authorization", `Bearer ${auth.accessToken}`)
             .send({
                 username: "Updated"
             });
@@ -171,11 +170,11 @@ describe("Get an user by email", () => {
 
         const res = await request(app)
             .get(`/api/user/email/${auth.user.email}`)
-            .set("Authorization", `Bearer ${auth.token}`);
+            .set("Authorization", `Bearer ${auth.accessToken}`);
 
         expect(res.status).toBe(200);
 
-        expect(res.body).toMatchObject({
+        expect(res.body.data).toMatchObject({
             username: "Auth User",
             email: "auth@email.com"
         });
@@ -193,16 +192,16 @@ describe("Get an user by id", () => {
 
         const res = await request(app)
             .get(`/api/user/id/${auth.user.id}`)
-            .set("Authorization", `Bearer ${auth.token}`);
+            .set("Authorization", `Bearer ${auth.accessToken}`);
 
         expect(res.status).toBe(200);
 
-        expect(res.body).toMatchObject({
+        expect(res.body.data).toMatchObject({
             username: "Auth User",
             email: "auth@email.com"
         });
 
-        expect(res.body).not.toHaveProperty("password");
+        expect(res.body.data).not.toHaveProperty("password");
     });
 
     it("should return 401 if token is missing", async () => {
