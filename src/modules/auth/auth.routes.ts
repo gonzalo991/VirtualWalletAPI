@@ -2,10 +2,13 @@ import { Router } from "express";
 import {
     loginController, refreshTokenController,
     registerController, logoutController,
-    googleLoginController
+    googleLoginController, forgotPasswordController,
 } from "./auth.controller";
 import { validate } from "../../middlewares/validation.middleware";
-import { googleLoginSchema, loginSchema, logoutSchema, refreshSchema, registerSchema } from "./auth.schemas";
+import {
+    googleLoginSchema, loginSchema, logoutSchema,
+    refreshSchema, registerSchema, forgotPasswordSchema
+} from "./auth.schemas";
 import { authRateLimit } from "../../middlewares/rateLimit.middleware";
 
 const authRouter = Router();
@@ -44,5 +47,10 @@ authRouter.post(
     "/google",
     validate(googleLoginSchema),
     googleLoginController);
+
+authRouter.post(
+    "forgot-password",
+    validate(forgotPasswordSchema),
+    forgotPasswordController);
 
 export default authRouter;

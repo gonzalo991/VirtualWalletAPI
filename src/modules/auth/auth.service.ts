@@ -1,4 +1,4 @@
-import { AlreadyExistsException, InvalidFieldsException, UnauthorizedException } from "../../exceptions/Exception";
+import { AlreadyExistsException, InvalidFieldsException, NotFoundException, UnauthorizedException } from "../../exceptions/Exception";
 import { prisma } from "../../lib/prisma";
 import { comparePassword, hashPassword } from "../../utils/hash";
 import { signRefreshToken, signToken, verifyRefreshToken } from "../../utils/jwt";
@@ -256,4 +256,30 @@ export const googleLoginService = async (idToken: string) => {
         accessToken,
         refreshToken
     );
+}
+
+export const forgotPassword = async (email: string) => {
+    try {
+        const response = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (!response) {
+            logger.error(`[Forgot Password Service] User for email: ${email} not found.`);
+            throw NotFoundException(`USER_NOT_FOUND`);
+        }
+
+        const userData = {
+            username: response.username,
+            password: response.password,
+        }
+
+        return {
+            success: true,
+            userData,
+        }
+    } catch (error) {
+        logger.error(`[Forgot Password Service] An unexpected error occurred.`);
+        throw error;
+    }
 }

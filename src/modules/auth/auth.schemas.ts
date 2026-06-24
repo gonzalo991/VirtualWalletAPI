@@ -28,3 +28,7 @@ export const logoutSchema = z.object({
 export const googleLoginSchema = z.object({
     idToken: z.string().min(1, "Google token is required")
 });
+
+export const forgotPasswordSchema = z.object({
+    email: z.string().email("Invalid email"),
+})
