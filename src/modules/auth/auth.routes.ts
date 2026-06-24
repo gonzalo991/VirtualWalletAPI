@@ -1,8 +1,11 @@
 import { Router } from "express";
-import { loginController, refreshTokenController,
-     registerController, logoutController } from "./auth.controller";
+import {
+    loginController, refreshTokenController,
+    registerController, logoutController,
+    googleLoginController
+} from "./auth.controller";
 import { validate } from "../../middlewares/validation.middleware";
-import { loginSchema, logoutSchema, refreshSchema, registerSchema } from "./auth.schemas";
+import { googleLoginSchema, loginSchema, logoutSchema, refreshSchema, registerSchema } from "./auth.schemas";
 import { authRateLimit } from "../../middlewares/rateLimit.middleware";
 
 const authRouter = Router();
@@ -34,6 +37,12 @@ authRouter.post(
 
 authRouter.post(
     "/logoutAllSessions",
-validate(refreshSchema),
-)
+    validate(refreshSchema),
+);
+
+authRouter.post(
+    "/google",
+    validate(googleLoginSchema),
+    googleLoginController);
+
 export default authRouter;

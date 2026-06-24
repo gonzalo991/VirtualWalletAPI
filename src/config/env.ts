@@ -10,10 +10,14 @@ const envSchema = z.object({
 
   JWT_REFRESH_SECRET: z.string().min(32),
   JWT_REFRESH_EXPIRES_IN: z.string(),
-  
+
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+
+  OAUTH_CLIENT_ID: z.string().min(1),
+
+  OAUTH_CLIENT_SECRET: z.string().min(10),
 });
 
 const parsed = envSchema.safeParse(process.env);

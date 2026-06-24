@@ -9,6 +9,8 @@ import { AuthMapper } from "./response/AuthMapper";
 import { logger } from "../../lib/logger";
 import type { RefreshTokenResponse } from "./response/RefreshTokenResponse";
 import { randomUUID } from "crypto";
+import { googleClient } from "../../lib/google-client";
+import { env } from "../../config/env";
 
 export const register = async (dto: RegisterDto): Promise<AuthResponse> => {
     try {
@@ -196,3 +198,62 @@ export const logoutAllSessions = async (userId: string) => {
 
     return null;
 };
+
+export const googleLoginService = async (idToken: string) => {
+    const ticket = await googleClient.verifyIdToken({
+        idToken,
+        audience: env.OAUTH_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload?.email) {
+        logger.info(`[Google Auth Service] Email not found`);
+        throw UnauthorizedException("Invalid Token");
+    }
+
+    let user = await prisma.user.findUnique({
+        where: {
+            email: payload.email,
+        }
+    });
+
+    if (!user) {
+        const randomPassword = await hashPassword(randomUUID());
+
+        user = await prisma.user.create({
+            data: {
+                email: payload.email,
+                username: payload.name! ?? payload.email.split("@")[0]!,
+                googleId: payload.sub,
+                password: randomPassword,
+            }
+        });
+    }
+
+    const accessToken = signToken({
+        id: user.id,
+        email: user.email
+    });
+
+    const refreshToken = signRefreshToken({
+        id: user.id,
+        email: user.email,
+        jti: randomUUID(),
+    });
+
+    await prisma.refreshToken.create({
+        data: {
+            token: refreshToken,
+            userId: user.id,
+
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        }
+    });
+
+    return AuthMapper.toDomain(
+        user,
+        accessToken,
+        refreshToken
+    );
+}

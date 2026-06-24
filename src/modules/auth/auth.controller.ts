@@ -1,4 +1,4 @@
-import { register, login, logout, refreshSession, logoutAllSessions } from "./auth.service";
+import { register, login, logout, refreshSession, logoutAllSessions, googleLoginService } from "./auth.service";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { ApiResponse } from "../../utils/apiResponse";
 import { HTTP_STATUS } from "../../constants/httpStatus";
@@ -45,5 +45,15 @@ export const logoutAllSessionsController = asyncHandler(async (req, res) => {
 
     res.status(HTTP_STATUS.OK).json(
         ApiResponse.success("All sessions logged out")
+    );
+});
+
+export const googleLoginController = asyncHandler(async (req, res) => {
+    const { idToken } = req.body;
+
+    const data = await googleLoginService(idToken);
+
+    return res.status(HTTP_STATUS.OK).json(
+        ApiResponse.success("Google login successful.", data)
     );
 });
