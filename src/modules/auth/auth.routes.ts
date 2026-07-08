@@ -3,6 +3,7 @@ import {
     loginController, refreshTokenController,
     registerController, logoutController,
     googleLoginController, forgotPasswordController,
+    logoutAllSessionsController,
 } from "./auth.controller";
 import { validate } from "../../middlewares/validation.middleware";
 import {
@@ -10,6 +11,7 @@ import {
     refreshSchema, registerSchema, forgotPasswordSchema
 } from "./auth.schemas";
 import { authRateLimit } from "../../middlewares/rateLimit.middleware";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 
 const authRouter = Router();
 
@@ -40,7 +42,9 @@ authRouter.post(
 
 authRouter.post(
     "/logoutAllSessions",
+    authMiddleware,
     validate(refreshSchema),
+    logoutAllSessionsController,
 );
 
 authRouter.post(
@@ -49,7 +53,7 @@ authRouter.post(
     googleLoginController);
 
 authRouter.post(
-    "forgot-password",
+    "/forgot-password",
     validate(forgotPasswordSchema),
     forgotPasswordController);
 

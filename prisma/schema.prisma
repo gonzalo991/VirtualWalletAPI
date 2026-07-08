@@ -6,6 +6,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  TRANSFER
+}
+
 model User {
   id                  String               @id @default(uuid())
   username            String
@@ -15,6 +21,8 @@ model User {
   createdAt           DateTime             @default(now())
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  wallets             Wallet[]
+  transactions        Transaction[]
 }
 
 model RefreshToken {
@@ -27,13 +35,35 @@ model RefreshToken {
 }
 
 model PasswordResetToken {
-  id          String  @id @default(uuid())
-  token       String  @unique
+  id    String @id @default(uuid())
+  token String @unique
 
-  userId      String
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  expiresAt   DateTime
+  expiresAt DateTime
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model Wallet {
+  id String @id @default(uuid())
+
+  balance Decimal @default(0)
+
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id String @id @default(uuid())
+
+  amount Decimal
+  type   TransactionType
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
