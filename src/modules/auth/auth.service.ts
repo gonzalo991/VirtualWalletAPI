@@ -1,4 +1,4 @@
-import { AlreadyExistsException, InvalidFieldsException, NotFoundException, UnauthorizedException } from "../../exceptions/Exception";
+import { AlreadyExistsException, InvalidFieldsException, UnauthorizedException } from "../../exceptions/Exception";
 import { prisma } from "../../lib/prisma";
 import { hashPassword, validatePassword } from "../../utils/hash";
 import { signRefreshToken, signToken, verifyRefreshToken, createTokens } from "../../utils/jwt";
@@ -11,6 +11,7 @@ import type { RefreshTokenResponse } from "./response/RefreshTokenResponse";
 import { randomUUID } from "crypto";
 import { googleClient } from "../../lib/google-client";
 import { env } from "../../config/env";
+import { createDefaultAccounts } from "../account/account.service";
 
 export const register = async (dto: RegisterDto): Promise<AuthResponse> => {
     try {
@@ -26,12 +27,18 @@ export const register = async (dto: RegisterDto): Promise<AuthResponse> => {
             }
         });
 
+        await createDefaultAccounts(prismaUser.id);
+
         const { accessToken, refreshToken } = await createTokens(prismaUser, prisma);
 
         return AuthMapper.toDomain(prismaUser, accessToken, refreshToken);
     } catch (error) {
         logger.error(`[Register Service Error]`);
         if ((error as any).code === "P2002") {
+            const target = (error as any).meta?.target;
+            if (target?.includes("username")) {
+                throw AlreadyExistsException("Username already exists");
+            }
             throw AlreadyExistsException("Email already exists");
         }
 
@@ -150,36 +157,37 @@ export const googleLoginService = async (idToken: string) => {
     const payload = ticket.getPayload();
 
     if (!payload?.email) {
-        logger.info(`[Google Auth Service] Email not found`);
+        logger.info(`[Google Auth Service] Email not found in token payload`);
         throw UnauthorizedException("Invalid Token");
     }
 
+    const normalizedEmail = payload.email.trim().toLowerCase();
+
     let user = await prisma.user.findUnique({
-        where: {
-            email: payload.email,
-        }
+        where: { email: normalizedEmail }
     });
 
     if (user && !user.googleId) {
-
         user = await prisma.user.update({
-            where: {
-                id: user.id
-            },
-            data: {
-                googleId: payload.sub
-            }
-        })
-
+            where: { id: user.id },
+            data: { googleId: payload.sub }
+        });
     }
 
     if (!user) {
         const randomPassword = await hashPassword(randomUUID());
 
+        const baseUsername = (payload.name || normalizedEmail.split("@")[0]!)
+            .toLowerCase()
+            .replace(/\s+/g, "_")
+            .replace(/[^a-z0-9_]/g, "");
+
+        const uniqueUsername = `${baseUsername}_${randomUUID().slice(0, 4)}`;
+
         user = await prisma.user.create({
             data: {
-                email: payload.email,
-                username: payload.name ?? payload.email.split("@")[0]!,
+                email: normalizedEmail,
+                username: uniqueUsername,
                 googleId: payload.sub,
                 password: randomPassword,
             }
@@ -188,42 +196,31 @@ export const googleLoginService = async (idToken: string) => {
 
     const { accessToken, refreshToken } = await createTokens(user, prisma);
 
-    return AuthMapper.toDomain(
-        user,
-        accessToken,
-        refreshToken
-    );
-}
+    return AuthMapper.toDomain(user, accessToken, refreshToken);
+};
 
 export const forgotPassword = async (email: string) => {
     try {
+        const normalizedEmail = email.trim().toLowerCase();
         const user = await prisma.user.findUnique({
-            where: { email }
-        })
+            where: { email: normalizedEmail }
+        });
 
-
-        if (!user) {
-            throw NotFoundException("USER_NOT_FOUND")
+        if (user) {
+            const token = randomUUID();
+            await prisma.passwordResetToken.create({
+                data: {
+                    token,
+                    userId: user.id,
+                    expiresAt: new Date(Date.now() + 15 * 60 * 1000)
+                }
+            });
+            // await mailerService.sendResetEmail(user.email, token);
         }
 
-
-        const token = randomUUID();
-
-
-        await prisma.passwordResetToken.create({
-            data: {
-                token,
-                userId: user.id,
-                expiresAt: new Date(
-                    Date.now() + 15 * 60 * 1000
-                )
-            }
-        })
-
-        // Add mailer service
         return {
-            message: "Reset email sent"
-        }
+            message: "If an account with that email exists, a password reset link has been sent."
+        };
     } catch (error) {
         logger.error(`[Forgot Password Service] An unexpected error occurred.`);
         throw error;

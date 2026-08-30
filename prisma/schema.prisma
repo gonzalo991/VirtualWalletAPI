@@ -6,23 +6,53 @@ datasource db {
   provider = "postgresql"
 }
 
+//------------------------------
+// ENUMS
+//------------------------------
+
+enum Currency {
+  ARS
+  USD
+  USDT
+  ETH
+}
+
+enum AccountStatus {
+  ACTIVE
+  FROZEN
+  SUSPENDED
+}
+
 enum TransactionType {
   DEPOSIT
   WITHDRAW
   TRANSFER
+  SWAP
 }
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// --------------------------------
+// MODELS
+// --------------------------------
 
 model User {
   id                  String               @id @default(uuid())
-  username            String
+  username            String               @unique
   email               String               @unique
   password            String
   googleId            String?              @unique
   createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
-  wallets             Wallet[]
-  transactions        Transaction[]
+  accounts            Account[]
 }
 
 model RefreshToken {
@@ -42,28 +72,68 @@ model PasswordResetToken {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   expiresAt DateTime
-
   createdAt DateTime @default(now())
 }
 
-model Wallet {
-  id String @id @default(uuid())
+model Account {
+  id                    String        @id @default(uuid())
+  userId                String
+  currency              Currency
+  balance               Decimal       @default(0)
+  status                AccountStatus @default(ACTIVE)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
-  balance Decimal @default(0)
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentTransactions      Transaction[] @relation("SourceAccount")
+  recievedTransactions  Transaction[] @relation("DestinationAccount")
+  ledgerEntries         LedgerEntry[] 
 
-  userId String @unique
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, currency])
+  @@index([userId])
 }
 
 model Transaction {
-  id String @id @default(uuid())
+  id                    String            @id @default(uuid())
+  idempotencyKey        String?           @unique
+  type                  TransactionType 
+  status                TransactionStatus @default(PENDING)
 
-  amount Decimal
-  type   TransactionType
+  amount                Decimal           @db.Decimal(28,8)
+  fee                   Decimal           @default(0) @db.Decimal(28,8)
+  currency              Currency
+  description           String?
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceAccountId       String?
+  sourceAccount         Account?          @relation("SourceAccount", fields: [sourceAccountId], references: [id])
 
-  createdAt DateTime @default(now())
+  destinationAccountId  String?
+  destinationAccount    Account?          @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
+
+  ledgerEntries         LedgerEntry[]
+
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([sourceAccountId])
+  @@index([destinationAccountId])
+  @@index([createdAt])
+}
+
+model LedgerEntry {
+  id                    String             @id @default(uuid())
+  transactionId         String
+  accountId             String
+  
+  amount                Decimal            @db.Decimal(28,8)
+
+  balanceAfter          Decimal            @db.Decimal(28,8)
+
+  createdAt             DateTime           @default(now())
+
+  transaction           Transaction        @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  account               Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([transactionId])
 }
